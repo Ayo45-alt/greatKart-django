@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 """
 Django settings for greatkart project.
 
@@ -21,7 +26,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'k#j!69q*yuian2w)*vyg1!^)*b^)==pmp)48@1uukfp1t_1l*p'
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -136,4 +141,18 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS ={
+    messages.ERROR: 'danger',
+}
 
+
+# SMTP CONFIGURATION
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

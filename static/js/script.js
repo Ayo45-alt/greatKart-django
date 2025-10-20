@@ -58,3 +58,7 @@ $(document).ready(function() {
 }); 
 // jquery end
 
+
+setTimeout(function() {
+    $('.alert').fadeOut('slow')
+}, 5000)  // 5 seconds instead of 4
