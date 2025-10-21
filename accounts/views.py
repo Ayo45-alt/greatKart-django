@@ -18,6 +18,10 @@ from django.urls import reverse
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth import get_user_model
+from cart.models import Cart, CartItem
+from cart.views import _cart_id
+
+
 
 
 def register(request):
@@ -69,8 +73,45 @@ def login(request):
         user = auth.authenticate(email=email, password=password)
 
         if user is not None:
+            try:
+                # get the user's session cart
+                cart = Cart.objects.get(cart_id=_cart_id(request))
+                cart_items = CartItem.objects.filter(cart=cart)
+
+                # get user's existing cart items (if any)
+                user_cart_items = CartItem.objects.filter(user=user)
+
+                for item in cart_items:
+                    product_variations = list(item.variations.all())
+
+                    found_match = False
+                    for user_item in user_cart_items:
+                        user_variations = list(user_item.variations.all())
+
+                        # if same product + same variations → increase quantity
+                        if item.product == user_item.product and product_variations == user_variations:
+                            user_item.quantity += item.quantity
+                            user_item.save()
+                            found_match = True
+                            break
+
+                    if not found_match:
+                        # reassign this guest item to the logged-in user
+                        item.user = user
+                        item.cart = None  # unlink from session cart
+                        item.save()
+
+            except Cart.DoesNotExist:
+                pass  # guest had no cart
+
             auth.login(request, user)
-            messages.success(request, 'You are now logged in.')  # ADD THIS LINE
+            messages.success(request, 'You are now logged in.')
+
+            # If they came from checkout page, go back there
+            url = request.META.get('HTTP_REFERER')
+            if url and 'checkout' in url:
+                return redirect('checkout')
+
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid login credentials')
