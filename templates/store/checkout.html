@@ -7,7 +7,7 @@
 <section class="section-content padding-y bg">
     <div class="container">
 
-        <form action="" method="POST">
+        <form action="{% url 'place_order' %}" method="POST">
             {% csrf_token %}
             <div class="row">
                 <!-- Billing Address Section -->

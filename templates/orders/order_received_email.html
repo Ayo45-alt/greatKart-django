@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            background: #fff;
+            max-width: 600px;
+            margin: 40px auto;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        h2 {
+            color: #28a745;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border-bottom: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #666;
+            font-size: 12px;
+        }
+        img.product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <center><img src="https://{{ domain }}/static/images/logo.png" width="120" alt="GreatKart Logo"></center>
+        <h2>Thank You for Your Order, {{ user.first_name }}!</h2>
+        <p>Your order <strong>#{{ order.order_number }}</strong> has been successfully placed.</p>
+
+        <h3>Order Summary</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Image</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.orderproduct_set.all %}
+                <tr>
+                    <td>{{ item.product.product_name }}</td>
+                    <td>
+                        {% if item.product.images %}
+                        <img class="product-img" src="https://{{ domain }}{{ item.product.images.url }}" alt="{{ item.product.product_name }}">
+                        {% endif %}
+                    </td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₦{{ item.product_price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p><strong>Total Paid:</strong> ₦{{ order.order_total }}</p>
+
+        <p>We'll notify you when your order ships. You can also view your order in your dashboard.</p>
+
+        <div class="footer">
+            © {{ now|date:"Y" }} GreatKart Nigeria — All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
