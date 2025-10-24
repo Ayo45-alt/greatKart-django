@@ -21,10 +21,22 @@
                 <!-- PRODUCT DETAILS -->
                 <main class="col-md-6 border-left">
                     <form action="{% url 'add_cart' single_product.id %}" method="POST">
-						{% csrf_token%}
+                        {% csrf_token %}
                         <article class="content-body">
 
                             <h2 class="title">{{ single_product.product_name }}</h2>
+
+                            <!-- AVERAGE RATING AND REVIEW COUNT -->
+                            <div class="rating-star">
+                                <span>
+                                    <i class="fa fa-star{% if average_rating < 0.5 %}-o{% elif average_rating >= 0.5 and average_rating < 1 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                    <i class="fa fa-star{% if average_rating < 1.5 %}-o{% elif average_rating >= 1.5 and average_rating < 2 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                    <i class="fa fa-star{% if average_rating < 2.5 %}-o{% elif average_rating >= 2.5 and average_rating < 3 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                    <i class="fa fa-star{% if average_rating < 3.5 %}-o{% elif average_rating >= 3.5 and average_rating < 4 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                    <i class="fa fa-star{% if average_rating < 4.5 %}-o{% elif average_rating >= 4.5 and average_rating < 5 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                </span>
+                            </div>
+                            <p class="mb-3 text-muted">{{ review_count }} review{% if review_count != 1 %}s{% endif %}</p>
 
                             <div class="mb-3">
                                 <var class="price h4">₦{{ single_product.price|intcomma }}</var>
@@ -41,14 +53,13 @@
                                         <select name="color" class="form-control" required>
                                             <option value=""disable selected>Select</option>
                                             {% for v in single_product.variation_set.colors %}
-                                            <option value="{{ v.variation_value |lower }}">{{ v.variation_value | capfirst }}</option>
+                                                <option value="{{ v.variation_value |lower }}">{{ v.variation_value | capfirst }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
-                            
                             <div class="row mb-3">
                                 <div class="col-12">
                                     <div class="item-option-select">
@@ -56,12 +67,12 @@
                                         <select name="size" class="form-control">
                                             <option value=""disable selected>Select</option>
                                             {% for v in single_product.variation_set.sizes %}
-                                            <option value="{{ v.variation_value | lower}}">{{ v.variation_value | capfirst  }}</option>
+                                                <option value="{{ v.variation_value | lower }}">{{ v.variation_value | capfirst }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
                                 </div>
-                            
+                            </div>
 
                             <hr>
 
@@ -94,27 +105,129 @@
         <div class="row">
             <div class="col-md-9">
                 <header class="section-heading">
+                </header>
+
+                <form method="POST" action="{% url 'submit_review' single_product.id %}">
+                    {% csrf_token %}
+                    <h5>Write Your Review</h5>
+
+                    {% if user.is_authenticated %}
+                        {% if orderproduct %}
+                            <div class="form-group">
+                                <label>How do you rate this product?</label>
+                                <br>
+                                <div class="rate">
+                                    <input type="radio" id="star5" name="rating" value="5" required />
+                                    <label for="star5" title="5 stars">5 stars</label>
+
+                                    <input type="radio" id="star4" name="rating" value="4" required />
+                                    <label for="star4" title="4 stars">4 stars</label>
+
+                                    <input type="radio" id="star3" name="rating" value="3" required />
+                                    <label for="star3" title="3 stars">3 stars</label>
+
+                                    <input type="radio" id="star2" name="rating" value="2" required />
+                                    <label for="star2" title="2 stars">2 stars</label>
+
+                                    <input type="radio" id="star1" name="rating" value="1" required />
+                                    <label for="star1" title="1 star">1 star</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Review Title</label>
+                                <input type="text" class="form-control" name="subject">
+                            </div>
+                            <div class="form-group">
+                                <label>Review</label>
+                                <textarea class="form-control" name="review" rows="4"></textarea>
+                            </div>
+                            {% include 'includes/alert.html' %}
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        {% else %}
+                            <p class="text-muted">You must purchase this product to write a review.</p>
+                        {% endif %}
+                    {% else %}
+                        <p>You must be <a href="{% url 'login' %}">logged in</a> to post a review.</p>
+                    {% endif %}
+                </form>
+
+                <br>
+
+                <header class="section-heading">
                     <h3>Customer Reviews</h3>
                 </header>
 
-                <article class="box mb-3">
-                    <div class="icontext w-100">
-                        <img src="{% static './images/avatars/avatar1.jpg' %}" class="img-xs icon rounded-circle">
-                        <div class="text">
-                            <span class="date text-muted float-md-right">24.04.2020</span>
-                            <h6 class="mb-1">Mike John</h6>
+                {% for review in reviews %}
+                    <article class="box mb-3">
+                        <div class="icontext w-100">
+                            <div class="text">
+                                <span class="date text-muted float-md-right">{{ review.updated_at }}</span>
+                                <h6 class="mb-1">{{ review.user.first_name }} {{ review.user.last_name }}</h6>
+                                <div class="rating-star">
+                                    <span>
+                                        <i class="fa fa-star{% if review.rating < 0.5 %}-o{% elif review.rating >= 0.5 and review.rating < 1 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                        <i class="fa fa-star{% if review.rating < 1.5 %}-o{% elif review.rating >= 1.5 and review.rating < 2 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                        <i class="fa fa-star{% if review.rating < 2.5 %}-o{% elif review.rating >= 2.5 and review.rating < 3 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                        <i class="fa fa-star{% if review.rating < 3.5 %}-o{% elif review.rating >= 3.5 and review.rating < 4 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                        <i class="fa fa-star{% if review.rating < 4.5 %}-o{% elif review.rating >= 4.5 and review.rating < 5 %}-half-o {% endif %}" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mt-3">
-                        <p>
-                            Dummy comment Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                            tempor incididunt ut labore et dolore magna aliqua.
-                        </p>
-                    </div>
-                </article>
+                        <div class="mt-3">
+                            <h6>{{ review.subject }}</h6>
+                            <p>{{ review.review }}</p>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p>No reviews yet. Be the first to review this product!</p>
+                {% endfor %}
             </div>
         </div>
-
     </div>
 </section>
+
+<style>
+.rate {
+    display: inline-block;
+    height: 46px;
+    padding: 0 10px;
+}
+.rate:not(:checked) > input {
+    position: absolute;
+    opacity: 0;
+}
+.rate:not(:checked) > label {
+    float: right;
+    width: 1em;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    font-size: 30px;
+    color: #ccc;
+}
+.rate:not(:checked) > label:before {
+    content: '★ ';
+}
+.rate > input:checked ~ label {
+    color: #ffc700;    
+}
+.rate:not(:checked) > label:hover,
+.rate:not(:checked) > label:hover ~ label {
+    color: #ffc700;  
+}
+.rate > input:checked + label:hover,
+.rate > input:checked + label:hover ~ label,
+.rate > input:checked ~ label:hover,
+.rate > input:checked ~ label:hover ~ label,
+.rate > label:hover ~ input:checked ~ label {
+    color: #ffc700;
+}
+
+.rating-star i {
+    color: #ffc700;
+}
+</style>
+
 {% endblock %}
