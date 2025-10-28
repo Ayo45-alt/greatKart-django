@@ -16,12 +16,24 @@ def store(request, category_slug=None):
     category = None
     products = None
 
+    # Category filter
     if category_slug:
         category = get_object_or_404(Category, slug=category_slug)
         products = Product.objects.filter(category=category, is_available=True).order_by('id')
     else:
         products = Product.objects.filter(is_available=True).order_by('id')
 
+    # ✅ Price filter
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+
+    if min_price and max_price:
+        try:
+            products = products.filter(price__gte=float(min_price), price__lte=float(max_price))
+        except ValueError:
+            pass  # ignore if user passes invalid input
+
+    # Pagination
     paginator = Paginator(products, 6)
     page = request.GET.get('page')
 
@@ -40,12 +52,13 @@ def store(request, category_slug=None):
     }
     return render(request, 'store/store.html', context)
 
-
 from orders.models import OrderProduct
 
 from django.db.models import Avg, Count
 
 
+
+from .models import ProductGallery
 
 def product_detail(request, category_slug, product_slug):
     try:
@@ -57,19 +70,24 @@ def product_detail(request, category_slug, product_slug):
     except Exception as e:
         raise e
     
+    # Check if user ordered this product
     if request.user.is_authenticated:
         orderproduct = OrderProduct.objects.filter(user=request.user, product_id=single_product.id).exists()
     else:
         orderproduct = None
     
+    # Get reviews
     reviews = ReviewRating.objects.filter(product_id=single_product.id, status=True).order_by('-created_at')
-    
     review_count = reviews.count()
     
+    # Calculate average rating
     if review_count > 0:
         average_rating = reviews.aggregate(Avg('rating'))['rating__avg']
     else:
         average_rating = 0
+    
+    # Get product gallery images
+    product_gallery = ProductGallery.objects.filter(product_id=single_product.id)
     
     context = {
         'single_product': single_product,
@@ -78,9 +96,9 @@ def product_detail(request, category_slug, product_slug):
         'reviews': reviews,
         'review_count': review_count,
         'average_rating': average_rating,
+        'product_gallery': product_gallery,
     }
     return render(request, 'store/product_detail.html', context)
-
 
 
 def search(request):

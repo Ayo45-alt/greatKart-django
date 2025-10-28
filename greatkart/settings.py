@@ -1,8 +1,8 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
-
 """
 Django settings for greatkart project.
 
@@ -25,12 +25,12 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'k#j!69q*yuian2w)*vyg1!^)*b^)==pmp)48@1uukfp1t_1l*p'
+SECRET_KEY =  os.getenv('SECRET_KEY')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS =  os.getenv('ALLOWED_HOSTS', '').split(',')
 
 
 # Application definition

@@ -13,7 +13,18 @@
                 <aside class="col-md-6">
                     <article class="gallery-wrap">
                         <div class="img-big-wrap">
-                            <a href="#"><img src="{{ single_product.images.url }}" alt="{{ single_product.product_name }}"></a>
+                            <a href="#"><img id="main-image" src="{{ single_product.images.url }}" alt="{{ single_product.product_name }}"></a>
+                        </div>
+                        <!-- Thumbnails -->
+                        <div class="thumbs-wrap">
+                            <a href="#" class="item-thumb" data-image="{{ single_product.images.url }}">
+                                <img src="{{ single_product.images.url }}" width="60" height="60">
+                            </a>
+                            {% for gallery_img in product_gallery %}
+                                <a href="#" class="item-thumb" data-image="{{ gallery_img.image.url }}">
+                                    <img src="{{ gallery_img.image.url }}" width="60" height="60">
+                                </a>
+                            {% endfor %}
                         </div>
                     </article>
                 </aside>
@@ -51,9 +62,9 @@
                                     <div class="item-option-select">
                                         <h6>Choose Color</h6>
                                         <select name="color" class="form-control" required>
-                                            <option value=""disable selected>Select</option>
+                                            <option value="" disable selected>Select</option>
                                             {% for v in single_product.variation_set.colors %}
-                                                <option value="{{ v.variation_value |lower }}">{{ v.variation_value | capfirst }}</option>
+                                                <option value="{{ v.variation_value|lower }}">{{ v.variation_value|capfirst }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -65,9 +76,9 @@
                                     <div class="item-option-select">
                                         <h6>Select Size</h6>
                                         <select name="size" class="form-control">
-                                            <option value=""disable selected>Select</option>
+                                            <option value="" disable selected>Select</option>
                                             {% for v in single_product.variation_set.sizes %}
-                                                <option value="{{ v.variation_value | lower }}">{{ v.variation_value | capfirst }}</option>
+                                                <option value="{{ v.variation_value|lower }}">{{ v.variation_value|capfirst }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -189,45 +200,49 @@
 </section>
 
 <style>
-.rate {
-    display: inline-block;
-    height: 46px;
-    padding: 0 10px;
-}
-.rate:not(:checked) > input {
-    position: absolute;
-    opacity: 0;
-}
-.rate:not(:checked) > label {
-    float: right;
-    width: 1em;
-    overflow: hidden;
-    white-space: nowrap;
-    cursor: pointer;
-    font-size: 30px;
-    color: #ccc;
-}
-.rate:not(:checked) > label:before {
-    content: '★ ';
-}
-.rate > input:checked ~ label {
-    color: #ffc700;    
-}
-.rate:not(:checked) > label:hover,
-.rate:not(:checked) > label:hover ~ label {
-    color: #ffc700;  
-}
-.rate > input:checked + label:hover,
-.rate > input:checked + label:hover ~ label,
-.rate > input:checked ~ label:hover,
-.rate > input:checked ~ label:hover ~ label,
-.rate > label:hover ~ input:checked ~ label {
-    color: #ffc700;
+.thumbs-wrap {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
 }
 
-.rating-star i {
-    color: #ffc700;
+.item-thumb {
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    display: inline-block;
+    transition: all 0.3s;
+}
+
+.item-thumb:hover,
+.item-thumb.active {
+    border-color: #007bff;
+    transform: scale(1.05);
+}
+
+.img-big-wrap img {
+    width: 100%;
+    height: auto;
 }
 </style>
+
+<script>
+    $(document).ready(function(){
+        // When thumbnail is clicked
+        $('.item-thumb').click(function(e){
+            e.preventDefault();
+            var imageUrl = $(this).data('image');
+            $('#main-image').attr('src', imageUrl);
+            
+            // Add active class to clicked thumbnail
+            $('.item-thumb').removeClass('active');
+            $(this).addClass('active');
+        });
+        
+        // Set first thumbnail as active
+        $('.item-thumb:first').addClass('active');
+    });
+</script>
 
 {% endblock %}
